@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -118,7 +119,8 @@ func (s *RediStore) SetSerializer(ss SessionSerializer) {
 // both in database and a browser. This is to change session storage configuration.
 // If you want just to remove session use your session `s` object and change it's
 // `Options.MaxAge` to -1, as specified in
-//    http://godoc.org/github.com/gorilla/sessions#Options
+//
+//	http://godoc.org/github.com/gorilla/sessions#Options
 //
 // Default is the one provided by this package value - `sessionExpire`.
 // Set it to 0 for no restriction.
@@ -266,6 +268,7 @@ func (s *RediStore) Save(r *http.Request, w http.ResponseWriter, session *sessio
 			return err
 		}
 		encoded, err := securecookie.EncodeMulti(session.Name(), session.ID, s.Codecs...)
+		log.Printf("encodemulti, name: %s, id: %s, encoded: %s, err: %s, codecs: %s", session.Name(), session.ID, encoded, err, s.Codecs)
 		if err != nil {
 			return err
 		}
@@ -325,6 +328,7 @@ func (s *RediStore) save(session *sessions.Session) error {
 		age = s.DefaultMaxAge
 	}
 	_, err = conn.Do("SETEX", s.keyPrefix+session.ID, age, b)
+	log.Printf("redis saving, session: %s, b: %s, err: %s", session, b, err)
 	return err
 }
 
